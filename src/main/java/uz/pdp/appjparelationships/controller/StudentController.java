@@ -5,14 +5,22 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
+import uz.pdp.appjparelationships.entity.Faculty;
+import uz.pdp.appjparelationships.entity.Group;
 import uz.pdp.appjparelationships.entity.Student;
+import uz.pdp.appjparelationships.repository.FacultyRepository;
 import uz.pdp.appjparelationships.repository.StudentRepository;
+
+import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/student")
 public class StudentController {
     @Autowired
     StudentRepository studentRepository;
+    @Autowired
+    FacultyRepository facultyRepository;
 
     //1. VAZIRLIK
     @GetMapping("/forMinistry")
@@ -42,7 +50,31 @@ public class StudentController {
     }
 
     //3. FACULTY DEKANAT
-    //4. GROUP OWNER
+    @GetMapping("/forFaculty/{facultyId}")
+    public Page<Student> getStudentListForFaculty(@PathVariable Integer facultyId, @RequestParam int page){
+        Pageable pageable = PageRequest.of(page, 10);
+        Page<Student> studentPage = studentRepository.findAllByGroup_FacultyId(facultyId, pageable);
+        return studentPage;
 
+
+    }
+    //4. GROUP OWNER
+    @GetMapping("forGroup/{groupId}")
+    public List<Student> getStudentListGroup(@PathVariable Integer groupId){
+        List<Student> studentList = studentRepository.findStudentByGroupId(groupId);
+        return studentList;
+    }
+
+    @DeleteMapping("/deleteStudent/{studentId}")
+    public String deleteStudent(@PathVariable Integer studentId){
+        Optional<Student> findStudent = studentRepository.findById(studentId);
+        if (findStudent.isPresent()){
+            studentRepository.deleteById(studentId);
+            return "Deleted student";
+        }
+        return "Student not found";
+    }
+
+    //POST va PUT amallarini qilmadim chunki @OneToMany ishlatish videolar davomida umuman korsatilmagan!!
 
 }
